@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  freedom-adventure:
+    container_name: freedom-adventure-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - ./src/.env
+
+  db:
+    image: postgres:16
+    container_name: freedom-adventure-db
+    env_file:
+      - ./src/.env
+
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  redis:
+    container_name: freedom-adventure-redis
+    image: redis:latest
+    ports:
+      - "6379:6379"

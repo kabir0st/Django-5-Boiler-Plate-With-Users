@@ -1,0 +1,62 @@
+name: CI Workflow
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  health-check-job:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Cache dependency
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Setup python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10.9"
+      - name: Check Python version
+        run: python --version
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.2.0
+        with:
+          redis-version: 5.0.7
+      - name: Generate Env
+        working-directory: ./src
+        run: python3 gen.py
+      - name: Generate Env
+        working-directory: ./src
+        run: ./seeder.sh
+  # auto-deploy-job:
+  #   needs: [health-check-job]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy using ssh
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.AWS_IP }}
+  #         username: ubuntu
+  #         key: ${{ secrets.AWS_KEY }}
+  #         port: 22
+  #         script: |
+  #           cd bepasal-backend/
+  #           git pull origin dev
+  #           sudo service bepasal restart
