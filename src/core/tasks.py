@@ -33,7 +33,8 @@ def send_email(to, subject, message=None, html=None, obj_id=None):
     if res := send_mail(
             subject,
             message,
-            'contact@freedomadventuretreks.com', [to],
+            'contact@freedomadventuretreks.com',
+        [to],
             html_message=html,
     ):
         write_log_file.delay('email', f"Mail sent to: {to} {subject}")
@@ -66,17 +67,17 @@ def extract_field_data(obj):
                 data[field.name] = []
                 names = []
                 for in_obj in getattr(obj, field.name).filter():
-                    if obj.__class__.__name__ in ['Ticket', 'InvoiceSummary'
-                                                  ] and field.name in [
-                            'addons']:
+                    if obj.__class__.__name__ in [
+                            'Subscription', 'Invoice'
+                    ] and field.name in ['addons']:
                         data[f"Addon {str(in_obj)}"] = getattr(
                             obj, 'addon_quantity').get(str(in_obj.id), 0)
                     names.append(str(in_obj))
 
                 data[field.name] = ", ".join(names)
 
-            elif isinstance(field, (
-                    models.ManyToOneRel, models.ManyToManyRel)):
+            elif isinstance(field,
+                            (models.ManyToOneRel, models.ManyToManyRel)):
                 if names := [
                         str(in_obj)
                         for in_obj in getattr(obj, field.name).filter()

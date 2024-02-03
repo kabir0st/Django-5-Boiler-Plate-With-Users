@@ -82,3 +82,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+
+class MiniUserBaseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserBase
+        fields = ('id', 'uuid', 'given_name', 'family_name', 'is_verified',
+                  'profile_image')
