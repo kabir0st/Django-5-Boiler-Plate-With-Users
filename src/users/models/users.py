@@ -29,7 +29,13 @@ class UserbaseManager(BaseUserManager):
         # Agent
         other_fields.setdefault("is_agent", True)
         other_fields.setdefault("is_active", True)
-        return self.create_user(email, password, **other_fields)
+        if not email:
+            raise ValueError("You must provide an email address")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **other_fields)
+        user.set_password(password)
+        user.save()
+        return user
 
     def create_user(self, email, password, **other_fields):
         other_fields.setdefault("is_superuser", False)
@@ -65,6 +71,11 @@ def image_directory_path(instance, filename):
 
 class UserBase(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     uuid = models.UUIDField(unique=True, default=uuid4, editable=False)
+
+    referred_by = models.ForeignKey('UserBase',
+                                    on_delete=models.SET_NULL,
+                                    null=True,
+                                    blank=True)
 
     provider = models.CharField(max_length=255,
                                 default='',

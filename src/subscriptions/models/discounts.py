@@ -1,11 +1,12 @@
-from django.forms import ValidationError
 from django.db import models
-from subscriptions.models.invoice import Invoice
-from core.utils.models import TimeStampedModel
-from users.models import UserBase
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_save
+from django.forms import ValidationError
+
+from core.utils.models import TimeStampedModel
+from subscriptions.models.invoice import Invoice
 from subscriptions.utils import delete_unique_cards, generate_unique_cards
+from users.models import UserBase
 
 
 class Discount(TimeStampedModel):
@@ -34,6 +35,14 @@ class Discount(TimeStampedModel):
     has_unique_codes = models.BooleanField(default=False)
 
     is_available = models.BooleanField(default=False)
+
+    is_referral = models.BooleanField(default=False)
+    referred_by = models.ForeignKey(UserBase,
+                                    on_delete=models.SET_NULL,
+                                    null=True,
+                                    blank=True,
+                                    related_name='referral_code')
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -48,6 +57,13 @@ class Discount(TimeStampedModel):
 
 @receiver(pre_save, sender=Discount)
 def pre_save_handler_gift_card(sender, instance, *args, **kwargs):
+    if instance.referred_by:
+        if not instance.referred_by and not instance.referred_by.is_agent:
+            raise ValidationError(
+                'To mark discount code as Referral, referred_by'
+                ' must be set and user must be an agent.')
+    else:
+        instance.referred_by = None
     instance.is_available = instance.discount_availability
     if instance.has_unique_codes:
         if not instance.is_limited:

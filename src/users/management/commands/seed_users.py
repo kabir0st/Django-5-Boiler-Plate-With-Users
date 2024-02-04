@@ -14,14 +14,16 @@ class Command(BaseCommand):
         print('here triggered')
         with contextlib.suppress(Exception):
             User.objects.create_superuser('admin@admin.com', 'pass')
-        for _ in range(50):
-            with contextlib.suppress(Exception):
-                UserBase.objects.create(
-                    family_name=fake.first_name(),
-                    given_name=fake.first_name(),
-                    last_name=fake.last_name(),
-                    email=fake.email(),
-                    phone_number=fake.phone_number(),
-                )
+        for _ in range(10):
+            UserBase.objects.create_user(family_name=fake.first_name(),
+                                         given_name=fake.first_name(),
+                                         email=fake.email(),
+                                         password='pass')
+        for _ in range(2):
+            UserBase.objects.create_agent(family_name=fake.first_name(),
+                                          given_name=fake.first_name(),
+                                          email=fake.email(),
+                                          password='pass',
+                                          is_agent=True)
 
         self.stdout.write(self.style.SUCCESS('Users populated successfully.'))
