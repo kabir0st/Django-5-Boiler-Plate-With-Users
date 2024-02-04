@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from users.tasks import send_notifications
 
 
-class Notification(models.Model):
+class GlobalNotification(models.Model):
     ALL = 'all'
     SUBSCRIBED = 'subscribed'
     AGENTS = 'agents'
@@ -23,7 +23,7 @@ class Notification(models.Model):
     is_processed = models.BooleanField(default=False)
 
 
-@receiver(post_save, sender=Notification)
+@receiver(post_save, sender=GlobalNotification)
 def post_save(sender, instance, *args, **kwargs):
     if not instance.is_processed:
         send_notifications.delay(instance.id)

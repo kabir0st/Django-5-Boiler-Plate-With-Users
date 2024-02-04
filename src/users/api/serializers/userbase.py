@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from users.models import (UserBase)
-from users.models.notification import Notification
+from users.models.notification import GlobalNotification
 from users.models.supports import VerificationCode
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -77,10 +77,10 @@ class UserBaseSerializer(serializers.ModelSerializer):
         return get_properties(UserBase, obj)
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class GlobalNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Notification
+        model = GlobalNotification
         fields = '__all__'
 
 

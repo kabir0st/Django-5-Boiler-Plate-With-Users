@@ -2,7 +2,7 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 
 from .models import (Document, Settings, UserBase, VerificationCode,
-                     Notification)
+                     GlobalNotification)
 
 
 @admin.register(Settings)
@@ -29,6 +29,6 @@ class DocumentAdmin(ModelAdmin):
     list_filter = ('status', )
 
 
-@admin.register(Notification)
+@admin.register(GlobalNotification)
 class NotificationAdmin(ModelAdmin):
     pass

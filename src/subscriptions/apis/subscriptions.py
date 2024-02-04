@@ -8,6 +8,7 @@ from core.utils.viewsets import DefaultViewSet
 from subscriptions.apis.serializers import SubscriptionSerializer
 from subscriptions.models.subscription import Subscription
 from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 
 
 class SubscriptionAPI(DefaultViewSet):
@@ -32,9 +33,10 @@ class SubscriptionAPI(DefaultViewSet):
     @action(methods=['post'], detail=False)
     def subscribe(self, request, *args, **kwargs):
         """
-        SubscriptionType = month or year
+        Discount code can be used as referral code as well.
+        SubscriptionType = month
         {
-            "payment_method_id: <PAYMENT_METHOD_ID>,
+            'discount_code': <CODE>,
             'subscription_type': <SubscriptionType>
         }
         """
@@ -43,10 +45,13 @@ class SubscriptionAPI(DefaultViewSet):
             raise APIException(
                 'User is already subscribed to an active subscription.')
         subscription_type = request.data.get('subscription_type', None)
+        _ = request.data.get('discount_code', None)
+
         if not subscription_type:
             return Response({'msg': 'Subscription type is required.'},
                             status=status.HTTP_400_BAD_REQUEST)
-
+        with transaction.atomic():
+            pass
         if subs:
             return Response(
                 {

@@ -3,24 +3,24 @@ from django_filters import FilterSet
 from rest_framework.permissions import IsAuthenticated
 
 from core.utils.viewsets import DefaultViewSet
-from users.api.serializers.userbase import NotificationSerializer
-from users.models.notification import Notification
+from users.api.serializers.userbase import GlobalNotificationSerializer
+from users.models.notification import GlobalNotification
 
 
-class NotificationFilters(FilterSet):
+class GlobalNotificationFilters(FilterSet):
 
     class Meta:
-        model = Notification
+        model = GlobalNotification
         fields = '__all__'
 
 
 class NotificationAPI(DefaultViewSet):
-    queryset = Notification.objects.all()
-    serializer_class = NotificationSerializer
+    queryset = GlobalNotification.objects.all()
+    serializer_class = GlobalNotificationSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get']
     search_fields = ['title']
-    filterset_class = NotificationFilters
+    filterset_class = GlobalNotificationFilters
 
     def get_queryset(self):
         user = self.request.user
