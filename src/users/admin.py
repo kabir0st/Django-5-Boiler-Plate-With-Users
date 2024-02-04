@@ -1,7 +1,8 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import Document, Settings, UserBase, VerificationCode
+from .models import (Document, Settings, UserBase, VerificationCode,
+                     Notification)
 
 
 @admin.register(Settings)
@@ -26,3 +27,8 @@ class DocumentAdmin(ModelAdmin):
     list_display = ('uuid', 'name', 'model', 'status')
     search_fields = ('uuid', 'name', 'model')
     list_filter = ('status', )
+
+
+@admin.register(Notification)
+class NotificationAdmin(ModelAdmin):
+    pass
