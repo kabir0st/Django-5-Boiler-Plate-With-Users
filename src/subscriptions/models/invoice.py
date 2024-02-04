@@ -18,7 +18,11 @@ def generate_invoice_number():
 
 
 class Invoice(TimeStampedModel):
-    invoice_number = models.CharField(max_length=50, unique=True, default='')
+    invoice_number = models.CharField(max_length=50,
+                                      unique=True,
+                                      default='',
+                                      blank=True,
+                                      null=True)
     invoiced_by = models.ForeignKey(UserBase,
                                     on_delete=models.SET_NULL,
                                     related_name='invoices',
