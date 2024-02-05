@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from core.utils.viewsets import DefaultViewSet
 from users.api.serializers.userbase import GlobalNotificationSerializer
-from users.models.notification import GlobalNotification
+from users.models import GlobalNotification
 
 
 class GlobalNotificationFilters(FilterSet):

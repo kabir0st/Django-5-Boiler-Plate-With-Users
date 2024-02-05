@@ -8,7 +8,8 @@ from django.forms import ValidationError
 from django.utils import timezone
 
 from core.utils.models import TimeStampedModel
-from users.tasks import send_otp_email
+from users.models.users import UserBase
+from users.tasks import process_global_notifications, send_otp_email
 
 
 def generate_random_code():
@@ -80,3 +81,54 @@ def pre_save_verification_code(sender, instance, *args, **kwargs):
 def post_save_handler_verification_code(sender, instance, created, **kwargs):
     if not instance.is_email_sent:
         send_otp_email.delay(instance.id)
+
+
+class GlobalNotification(models.Model):
+    ALL = 'all'
+    SUBSCRIBED = 'subscribed'
+    AGENTS = 'agents'
+
+    NOTIFICATION_TYPE_CHOICES = [
+        (ALL, 'All'),
+        (SUBSCRIBED, 'Subscribed'),
+        (AGENTS, 'Agents'),
+    ]
+    title = models.CharField(max_length=255)
+    msg = models.TextField(default='')
+    trigger_type = models.CharField(max_length=20,
+                                    choices=NOTIFICATION_TYPE_CHOICES)
+
+    is_processed = models.BooleanField(default=False)
+
+
+@receiver(post_save, sender=GlobalNotification)
+def post_save(sender, instance, *args, **kwargs):
+    if not instance.is_processed:
+        process_global_notifications.delay(instance.id)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(UserBase,
+                             on_delete=models.CASCADE,
+                             related_name='notifications')
+    msg = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @classmethod
+    def create_notification(cls, user, msg):
+        """Create a new notification for the user."""
+        return cls.objects.create(user=user, msg=msg)
+
+    @classmethod
+    def unread_notifications(cls, user):
+        """Get unread notifications for the user."""
+        return cls.objects.filter(user=user, is_read=False)
+
+    @classmethod
+    def mark_as_read(cls, user):
+        """Mark all notifications as read for the user."""
+        cls.objects.filter(user=user, is_read=False).update(is_read=True)

@@ -34,7 +34,7 @@ def send_otp_email(id):
 
 
 @celery_app.task
-def send_notifications(notification_id):
+def process_global_notifications(notification_id):
     n_class = apps.get_model('users', 'GlobalNotification')
     UserBase = apps.get_model('users', 'UserBase')
     notification = n_class.objects.get(id=notification_id)

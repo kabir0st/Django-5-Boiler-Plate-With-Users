@@ -1,11 +1,10 @@
-from rest_framework import serializers
-
-from users.models import (UserBase)
-from users.models.notification import GlobalNotification
-from users.models.supports import VerificationCode
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from rest_framework import serializers
+
 from core.utils.functions import get_properties
+from users.models import GlobalNotification, UserBase
+from users.models.supports import VerificationCode
 
 
 class LowercaseEmailValidator:
