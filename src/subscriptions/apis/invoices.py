@@ -70,7 +70,7 @@ class InvoiceAPI(DefaultViewSet):
             Payment.objects.create(created_by=request.user,
                                    payment_type='staff_approved',
                                    amount=Decimal(f'{request.data["amount"]}'),
-                                   invoice_summary=summary,
+                                   invoice=summary,
                                    remarks='Payment Through API')
         return Response(InvoiceSerializer(summary).data,
                         status=status.HTTP_202_ACCEPTED)
@@ -97,7 +97,7 @@ class InvoiceAPI(DefaultViewSet):
                     'amount': obj.amount,
                     'fonepay_payment': obj.id,
                     'payment_type': 'fonepay',
-                    'invoice_summary': self.get_object().id
+                    'invoice': self.get_object().id
                 }
                 serializer = PaymentSerializer(data=payment_data)
                 serializer.is_valid(raise_exception=True)

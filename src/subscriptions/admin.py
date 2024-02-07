@@ -64,7 +64,7 @@ class DiscountRedeemAdmin(ModelAdmin):
         return obj.code.code
 
 
-class FonePayPaymentAdmin(admin.ModelAdmin):
+class FonePayPaymentAdmin(ModelAdmin):
     list_display = ('invoice_number', 'amount', 'qr_status',
                     'is_verified_from_server', 'trace_id', 'ird_details_sent')
     list_filter = ('qr_status', 'is_verified_from_server', 'ird_details_sent')
@@ -75,12 +75,10 @@ class FonePayPaymentAdmin(admin.ModelAdmin):
 admin.site.register(FonePayPayment, FonePayPaymentAdmin)
 
 
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('payment_type', 'amount', 'invoice_summary', 'is_refunded')
+class PaymentAdmin(ModelAdmin):
+    list_display = ('payment_type', 'amount', 'invoice', 'is_refunded')
     list_filter = ('payment_type', 'is_refunded')
-    search_fields = ('payment_type', 'amount',
-                     'invoice_summary__invoice_number')
-    readonly_fields = ('invoice_summary', )
+    search_fields = ('payment_type', 'amount', 'invoice__invoice_number')
 
 
 admin.site.register(Payment, PaymentAdmin)

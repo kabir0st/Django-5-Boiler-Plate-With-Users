@@ -4,6 +4,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import now
+from datetime import datetime, timedelta
 
 from users.models import UserBase
 
@@ -39,6 +40,18 @@ class Subscription(models.Model):
         if self.current_period_end < now().timestamp():
             return False
         return self.status == 'active'
+
+    def add_days(self, days):
+        if self.current_period_end < now().timestamp():
+            start_from = now().timestamp()
+            self.current_starts = now().timestamp()
+        else:
+            start_from = self.current_period_end
+        current_period_end_datetime = datetime.utcfromtimestamp(start_from)
+        updated_end_datetime = current_period_end_datetime + timedelta(
+            days=days)
+        self.current_period_end = int(updated_end_datetime.timestamp())
+        self.save()
 
 
 @receiver(models.signals.pre_save, sender=Subscription)

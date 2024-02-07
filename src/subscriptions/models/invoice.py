@@ -34,9 +34,11 @@ class Invoice(TimeStampedModel):
                                      on_delete=models.SET_NULL,
                                      null=True,
                                      blank=True)
+
     subscription_charge = models.DecimalField(max_digits=10,
                                               decimal_places=2,
                                               default=0.00)
+    charged_period = models.PositiveIntegerField(default=30)
 
     staff_discount_amount = models.DecimalField(max_digits=10,
                                                 decimal_places=2,
@@ -57,6 +59,7 @@ class Invoice(TimeStampedModel):
                                       default=0.00)
 
     is_paid = models.BooleanField(default=False)
+    is_charged_period_added = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.invoice_number}"
@@ -71,19 +74,19 @@ class Invoice(TimeStampedModel):
         return self.paid_amount >= self.bill_amount
 
     def save_without_signals(self):
-        models.signals.pre_save.disconnect(handle_invoice_summary_pre_save,
+        models.signals.pre_save.disconnect(handle_invoice_pre_save,
                                            sender=Invoice)
-        models.signals.post_save.disconnect(handle_invoice_summary_post_save,
+        models.signals.post_save.disconnect(handle_invoice_post_save,
                                             sender=Invoice)
         self.save()
-        models.signals.pre_save.connect(handle_invoice_summary_pre_save,
+        models.signals.pre_save.connect(handle_invoice_pre_save,
                                         sender=Invoice)
-        models.signals.post_save.connect(handle_invoice_summary_post_save,
+        models.signals.post_save.connect(handle_invoice_post_save,
                                          sender=Invoice)
 
 
 @receiver(models.signals.pre_save, sender=Invoice)
-def handle_invoice_summary_pre_save(sender, instance, *args, **kwargs):
+def handle_invoice_pre_save(sender, instance, *args, **kwargs):
     if not instance.invoice_number:
         while True:
             number = generate_invoice_number()
@@ -101,7 +104,7 @@ def handle_invoice_summary_pre_save(sender, instance, *args, **kwargs):
 
 
 @receiver(models.signals.post_save, sender=Invoice)
-def handle_invoice_summary_post_save(sender, instance, *args, **kwargs):
+def handle_invoice_post_save(sender, instance, *args, **kwargs):
     instance.total_discount_amount = (instance.staff_discount_amount +
                                       instance.discount_from_discount_code)
     instance.bill_amount = (instance.subscription_charge -
@@ -111,3 +114,5 @@ def handle_invoice_summary_post_save(sender, instance, *args, **kwargs):
         for payment in instance.payments.filter(is_refunded=False))
     instance.is_paid = instance.check_is_paid()
     instance.save_without_signals()
+    if instance.is_paid and not instance.is_charged_period_added:
+        instance.subscription.add_days(instance.charged_period)

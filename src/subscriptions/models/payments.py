@@ -54,9 +54,9 @@ class Payment(TimeStampedModel):
                                         blank=True)
     amount = models.DecimalField(default=0.00, max_digits=60, decimal_places=2)
 
-    invoice_summary = models.ForeignKey(Invoice,
-                                        on_delete=models.PROTECT,
-                                        related_name='payments')
+    invoice = models.ForeignKey(Invoice,
+                                on_delete=models.PROTECT,
+                                related_name='payments')
     remarks = models.TextField(default='', blank=True)
 
     is_refunded = models.BooleanField(default=False)
@@ -68,4 +68,4 @@ class Payment(TimeStampedModel):
 
 @receiver(models.signals.post_save, sender=Payment)
 def handle_payment_post_save(sender, instance, *args, **kwargs):
-    instance.invoice_summary.save()
+    instance.invoice.save()

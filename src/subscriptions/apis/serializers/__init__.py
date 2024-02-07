@@ -26,6 +26,7 @@ class SubscribeSerializer(serializers.Serializer):
     subscription_type = serializers.CharField(required=True)
 
     def validate(self, attrs):
+        charge_periods = {'month': 30, 'trimonthly': 90}
         if code := attrs.get('discount_code', None):
             if code := Code.objects.filter(code=code).first():
                 if code.is_used:
@@ -35,12 +36,13 @@ class SubscribeSerializer(serializers.Serializer):
             else:
                 raise ValidationError('Given discount code is Invalid.')
         subscription_type = attrs.get('subscription_type')
-        if subscription_type not in ['month', 'trimonthly']:
+        if subscription_type not in charge_periods.keys():
             raise ValidationError(
                 'Subscription type must be either "month" or "trimonthly".')
         settings = GeneralSettings.load()
         attrs['subscription_charge'] = getattr(
             settings, f'price_for_{subscription_type}')
+        attrs['charged_period'] = charge_periods[subscription_type]
         return super().validate(attrs)
 
     def create(self, validated_data):
@@ -53,6 +55,7 @@ class SubscribeSerializer(serializers.Serializer):
             invoice = Invoice.objects.create(
                 invoiced_by=self.context['request'].user,
                 subscription=sub,
+                charged_period=validated_data['charged_period'],
                 subscription_charge=validated_data['subscription_charge'],
             )
             if code := validated_data.get('code', None):

@@ -23,9 +23,9 @@ class SubscriptionAPI(DefaultViewSet):
             return SubscribeSerializer
         return super().get_serializer_class()
 
-    def get_queryset(self, request, *args, **kwargs):
+    def get_queryset(self, *args, **kwargs):
         if self.request.user.is_staff:
-            return super().get_queryset()
+            return self.queryset
         return self.queryset.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
