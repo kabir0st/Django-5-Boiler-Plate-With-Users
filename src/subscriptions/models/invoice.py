@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from core.utils.models import TimeStampedModel
-from users.models.users import UserBase
+from users.models.userbase import UserBase
 
 from .subscription import Subscription
 

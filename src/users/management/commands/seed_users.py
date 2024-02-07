@@ -2,7 +2,7 @@ import contextlib
 from django.core.management.base import BaseCommand
 from faker import Faker
 from f_seeder import User
-from users.models.users import UserBase
+from users.models.userbase import UserBase
 
 fake = Faker()
 

@@ -4,7 +4,7 @@ from django_filters import FilterSet
 from subscriptions.models import Invoice, Code, DiscountRedeem, Discount
 
 
-class InvoiceSummaryFilterSet(django_filters.FilterSet):
+class InvoiceFilterSet(django_filters.FilterSet):
     paid_amount__range = django_filters.RangeFilter()
     subscription_charge__range = django_filters.RangeFilter()
     staff_discount_amount__range = django_filters.RangeFilter()

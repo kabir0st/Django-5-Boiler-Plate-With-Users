@@ -8,7 +8,7 @@ from django.forms import ValidationError
 from django.utils import timezone
 
 from core.utils.models import TimeStampedModel
-from users.models.users import UserBase
+from users.models.userbase import UserBase
 from users.tasks import process_global_notifications, send_otp_email
 
 

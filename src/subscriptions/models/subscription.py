@@ -1,9 +1,11 @@
-from django.db import models
-from django.utils.timezone import now
-from users.models import UserBase
-from django.utils import timezone
 import uuid
+
+from django.db import models
 from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.timezone import now
+
+from users.models import UserBase
 
 
 def generate_invoice_number():

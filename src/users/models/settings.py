@@ -2,5 +2,6 @@ from core.utils.models import SingletonModel
 from django.db import models
 
 
-class Settings(SingletonModel):
-    price_for_30_days = models.PositiveBigIntegerField(default=1000)
+class GeneralSettings(SingletonModel):
+    price_for_month = models.PositiveBigIntegerField(default=1000)
+    price_for_trimonthly = models.PositiveBigIntegerField(default=2500)

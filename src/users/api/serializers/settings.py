@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
-from users.models.settings import Settings
+from users.models.settings import GeneralSettings
 
 
 class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Settings
+        model = GeneralSettings
         fields = '__all__'

@@ -18,6 +18,7 @@ class DiscountAPI(DefaultViewSet):
     search_fields = ['code_prefix', 'DISCOUNT_TYPES']
     permission_classes = [IsAdmin]
     filterset_class = DiscountFilterSet
+    lookup_field = 'code_prefix'
 
     def get_serializer_class(self):
         if self.action == 'list':

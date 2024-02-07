@@ -1,17 +1,14 @@
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.utils.viewsets import DefaultViewSet
 from subscriptions.apis.serializers import (InvoiceSerializer,
+                                            SubscribeSerializer,
                                             SubscriptionSerializer)
-from subscriptions.models.discounts import Code, DiscountRedeem
-from subscriptions.models.invoice import Invoice
 from subscriptions.models.subscription import Subscription
-from rest_framework.permissions import IsAuthenticated
-from django.db import transaction
 
 
 class SubscriptionAPI(DefaultViewSet):
@@ -21,19 +18,26 @@ class SubscriptionAPI(DefaultViewSet):
     lookup_field = 'subscription_id'
     http_method_names = ['get', 'post']
 
+    def get_serializer_class(self):
+        if self.action == 'subscribe':
+            return SubscribeSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self, request, *args, **kwargs):
+        if self.request.user.is_staff:
+            return super().get_queryset()
+        return self.queryset.filter(user=self.request.user)
+
     def list(self, request, *args, **kwargs):
+        if self.request.user.is_staff:
+            return super().list(self, request, *args, **kwargs)
         if not hasattr(request.user, 'subscription'):
             return Response(
                 {'msg': 'User has not bought any subscriptions yet.'},
                 status=status.HTTP_404_NOT_FOUND)
         return Response(self.serializer_class(request.user.subscription).data)
 
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset
-        return self.queryset.filter(user=self.request.user)
-
-    @action(methods=['post'], detail=False)
+    @action(methods=['get', 'post'], detail=False)
     def subscribe(self, request, *args, **kwargs):
         """
         Discount code can be used as referral code as well.
@@ -43,41 +47,18 @@ class SubscriptionAPI(DefaultViewSet):
             'subscription_type': <SubscriptionType>
         }
         """
-        data = request.data.copy()
-        subs = Subscription.objects.filter(user=request.user).first()
-        if subs and subs.status == "active":
-            raise APIException(
-                'User is already subscribed to an active subscription.')
-        subscription_type = data.get('subscription_type', None)
-        discount = data.get('discount_code', None)
-        if discount:
-            if code := Code.objects.filter(code=discount).first():
-                if code.is_used:
-                    raise APIException('Given discount code is already used.')
-            else:
-                raise APIException('Given discount code is Invalid.')
-        if not subscription_type:
-            return Response({'msg': 'Subscription type is required.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        price = 200
-        with transaction.atomic():
-            subs = Subscription.objects.create(
-                user=request.user,
-                status='inactive',
-            )
-            invoice = Invoice.objects.create(
-                invoiced_by=request.user,
-                subscription=subs,
-                subscription_charge=price,
-            )
-            if discount:
-                DiscountRedeem.objects.create(redeemed_by=request.user,
-                                              code=code,
-                                              invoice=invoice)
+        if request.method == 'GET':
+            return Response('For testing.')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invoice = serializer.save()
         return Response(
             {
-                'msg': 'Subscription created.',
-                'invoice': InvoiceSerializer(invoice).data
+                'msg':
+                'Subscription initiated. Please pay the invoice to activate'
+                ' your subscription',
+                'invoice':
+                InvoiceSerializer(invoice).data
             },
             status=status.HTTP_201_CREATED)
 
@@ -86,7 +67,7 @@ class SubscriptionAPI(DefaultViewSet):
         subscription = self.get_object()
         subscription.delete()
         return Response({
-            'msg': 'User\'s subscription has been cancelled.',
+            'msg': 'Your subscription has been cancelled.',
         },
                         status=status.HTTP_200_OK)
 

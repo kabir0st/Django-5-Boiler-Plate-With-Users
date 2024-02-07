@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from core.utils.permissions import IsStaffOrReadOnly
 from core.utils.viewsets import DefaultViewSet
-from subscriptions.apis.filtersets import InvoiceSummaryFilterSet
+from subscriptions.apis.filtersets import InvoiceFilterSet
 from subscriptions.apis.serializers import (InvoiceSerializer,
                                             MiniInvoiceSerializer,
                                             PaymentSerializer)
@@ -19,12 +19,12 @@ from subscriptions.models.payments import FonePayPayment
 from subscriptions.utils import generate_fonepay_qr, verify_qr
 
 
-class InvoiceSummaryAPI(DefaultViewSet):
+class InvoiceAPI(DefaultViewSet):
     serializer_class = InvoiceSerializer
     search_fields = ["invoice_number", "bookings__booking_number"]
     queryset = Invoice.objects.filter().order_by('-id')
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
-    filterset_class = InvoiceSummaryFilterSet
+    filterset_class = InvoiceFilterSet
     lookup_field = "invoice_number"
 
     def get_serializer_class(self):

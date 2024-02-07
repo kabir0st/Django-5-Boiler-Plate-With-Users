@@ -1,11 +1,13 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 
-from .models import (Document, Settings, UserBase, VerificationCode,
+from users.models.supports import Notification
+
+from .models import (Document, GeneralSettings, UserBase, VerificationCode,
                      GlobalNotification)
 
 
-@admin.register(Settings)
+@admin.register(GeneralSettings)
 class SettingsAdmin(ModelAdmin):
     pass
 
@@ -30,5 +32,10 @@ class DocumentAdmin(ModelAdmin):
 
 
 @admin.register(GlobalNotification)
+class GlobalNotificationAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(Notification)
 class NotificationAdmin(ModelAdmin):
     pass

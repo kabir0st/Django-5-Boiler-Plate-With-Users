@@ -12,15 +12,14 @@ from users.api.support_app import DocumentAPI
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="PTE Examination Sys API",
-        default_version='v1',
+        title="The Language Test API",
+        default_version='beta',
         description="",
         terms_of_service="",
         contact=openapi.Contact(email="himalayancreatives.com"),
-        license=openapi.License(name="BSD License"),
     ),
     public=False,
-    permission_classes=[permissions.IsAdminUser],
+    permission_classes=[permissions.AllowAny],
 )
 router = SimpleRouter()
 router.register('documents', DocumentAPI)
@@ -33,6 +32,7 @@ api_version_1 = [
     path('app/whoami/', whoami),
     path('app/', include(router.urls)),
     path('users/', include('users.urls')),
+    path('subscriptions/', include('subscriptions.urls')),
 ]
 
 urlpatterns = [
