@@ -5,7 +5,10 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from core.utils.viewsets import DefaultViewSet
-from subscriptions.apis.serializers import SubscriptionSerializer
+from subscriptions.apis.serializers import (InvoiceSerializer,
+                                            SubscriptionSerializer)
+from subscriptions.models.discounts import Code, DiscountRedeem
+from subscriptions.models.invoice import Invoice
 from subscriptions.models.subscription import Subscription
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
@@ -40,36 +43,48 @@ class SubscriptionAPI(DefaultViewSet):
             'subscription_type': <SubscriptionType>
         }
         """
+        data = request.data.copy()
         subs = Subscription.objects.filter(user=request.user).first()
         if subs and subs.status == "active":
             raise APIException(
                 'User is already subscribed to an active subscription.')
-        subscription_type = request.data.get('subscription_type', None)
-        _ = request.data.get('discount_code', None)
-
+        subscription_type = data.get('subscription_type', None)
+        discount = data.get('discount_code', None)
+        if discount:
+            if code := Code.objects.filter(code=discount).first():
+                if code.is_used:
+                    raise APIException('Given discount code is already used.')
+            else:
+                raise APIException('Given discount code is Invalid.')
         if not subscription_type:
             return Response({'msg': 'Subscription type is required.'},
                             status=status.HTTP_400_BAD_REQUEST)
+        price = 200
         with transaction.atomic():
-            pass
-        if subs:
-            return Response(
-                {
-                    'msg': ('Your existing subscription has been '
-                            'reassigned to you.'),
-                    'subscription':
-                    self.serializer_class(subs).data
-                },
-                status=status.HTTP_201_CREATED)
-        return Response({'msg': 'Error creating subscription.'},
-                        status=status.HTTP_400_BAD_REQUEST)
+            subs = Subscription.objects.create(
+                user=request.user,
+                status='inactive',
+            )
+            invoice = Invoice.objects.create(
+                invoiced_by=request.user,
+                subscription=subs,
+                subscription_charge=price,
+            )
+            if discount:
+                DiscountRedeem.objects.create(redeemed_by=request.user,
+                                              code=code,
+                                              invoice=invoice)
+        return Response(
+            {
+                'msg': 'Subscription created.',
+                'invoice': InvoiceSerializer(invoice).data
+            },
+            status=status.HTTP_201_CREATED)
 
     @action(methods=['GET'], detail=True)
     def unsubscribe(self, request, *args, **kwargs):
         subscription = self.get_object()
-        res, msg = (subscription)
-        if not res:
-            return Response({'msg': msg}, status=status.HTTP_400_BAD_REQUEST)
+        subscription.delete()
         return Response({
             'msg': 'User\'s subscription has been cancelled.',
         },

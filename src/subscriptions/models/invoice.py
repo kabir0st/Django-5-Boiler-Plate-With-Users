@@ -49,18 +49,6 @@ class Invoice(TimeStampedModel):
                                                 decimal_places=2,
                                                 default=0.00)
 
-    extra_charge = models.DecimalField(max_digits=10,
-                                       decimal_places=2,
-                                       default=0.00)
-    extra_charge_remarks = models.CharField(max_length=255,
-                                            blank=True,
-                                            default='')
-
-    tax_amount = models.DecimalField(max_digits=10,
-                                     decimal_places=2,
-                                     default=0.00)
-    tax_remarks = models.CharField(max_length=255, blank=True, default='')
-
     bill_amount = models.DecimalField(max_digits=10,
                                       decimal_places=2,
                                       default=0.00)
@@ -105,8 +93,8 @@ def handle_invoice_summary_pre_save(sender, instance, *args, **kwargs):
     instance.paid_amount = Decimal('0.00')
 
     fields_to_convert = [
-        'extra_charge', 'tax_amount', 'bill_amount', 'staff_discount_amount',
-        'total_discount_amount', 'subscription_charge'
+        'bill_amount', 'staff_discount_amount', 'total_discount_amount',
+        'subscription_charge'
     ]
     for field in fields_to_convert:
         setattr(instance, field, Decimal(str(getattr(instance, field))))
@@ -117,8 +105,7 @@ def handle_invoice_summary_post_save(sender, instance, *args, **kwargs):
     instance.total_discount_amount = (instance.staff_discount_amount +
                                       instance.discount_from_discount_code)
     instance.bill_amount = (instance.subscription_charge -
-                            instance.total_discount_amount +
-                            instance.extra_charge + instance.tax_amount)
+                            instance.total_discount_amount)
     instance.paid_amount = sum(
         payment.amount
         for payment in instance.payments.filter(is_refunded=False))

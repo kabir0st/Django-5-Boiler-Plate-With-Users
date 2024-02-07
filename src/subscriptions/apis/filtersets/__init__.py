@@ -9,8 +9,6 @@ class InvoiceSummaryFilterSet(django_filters.FilterSet):
     subscription_charge__range = django_filters.RangeFilter()
     staff_discount_amount__range = django_filters.RangeFilter()
     total_discount_amount__range = django_filters.RangeFilter()
-    extra_charge__range = django_filters.RangeFilter()
-    tax_amount__range = django_filters.RangeFilter()
     bill_amount__range = django_filters.RangeFilter()
 
     class Meta:
