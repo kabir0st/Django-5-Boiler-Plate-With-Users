@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db import transaction
 from django.forms import ValidationError
 from rest_framework import status
@@ -14,8 +12,7 @@ from subscriptions.apis.serializers import (InvoiceSerializer,
                                             MiniInvoiceSerializer,
                                             PaymentSerializer,
                                             StaffPaymentSerializer)
-from subscriptions.models import Invoice, Payment
-from subscriptions.models.discounts import Code, DiscountRedeem
+from subscriptions.models import Invoice
 from subscriptions.models.payments import FonePayPayment
 from subscriptions.utils import generate_fonepay_qr, verify_qr
 
