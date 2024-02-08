@@ -116,3 +116,5 @@ def handle_invoice_post_save(sender, instance, *args, **kwargs):
     instance.save_without_signals()
     if instance.is_paid and not instance.is_charged_period_added:
         instance.subscription.add_days(instance.charged_period)
+        instance.is_charged_period_added = True
+        instance.save_without_signals()

@@ -51,6 +51,7 @@ class Subscription(models.Model):
         updated_end_datetime = current_period_end_datetime + timedelta(
             days=days)
         self.current_period_end = int(updated_end_datetime.timestamp())
+        self.status = 'active'
         self.save()
 
 

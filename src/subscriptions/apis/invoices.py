@@ -12,7 +12,8 @@ from core.utils.viewsets import DefaultViewSet
 from subscriptions.apis.filtersets import InvoiceFilterSet
 from subscriptions.apis.serializers import (InvoiceSerializer,
                                             MiniInvoiceSerializer,
-                                            PaymentSerializer)
+                                            PaymentSerializer,
+                                            StaffPaymentSerializer)
 from subscriptions.models import Invoice, Payment
 from subscriptions.models.discounts import Code, DiscountRedeem
 from subscriptions.models.payments import FonePayPayment
@@ -30,6 +31,8 @@ class InvoiceAPI(DefaultViewSet):
     def get_serializer_class(self):
         if self.action == 'list':
             return MiniInvoiceSerializer
+        if self.action == 'staff_approved_payment':
+            return StaffPaymentSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
@@ -37,43 +40,27 @@ class InvoiceAPI(DefaultViewSet):
             return super().get_queryset()
         return self.queryset.filter(invoiced_by=self.request.user)
 
-    @action(methods=['POST', 'GET'], detail=True)
-    def apply_discount_code(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            return Response({'status': True})
-        instance = self.get_object()
-        if instance.is_paid:
-            raise ValidationError(
-                'Cannot apply discount code to invoice that\'s '
-                'already been paid.')
-        if hasattr(instance, 'redeemed_discount'):
-            raise ValidationError('Only one discount code can be applied.')
-        code = Code.objects.get(code=request.data['code'])
-        if code.is_used:
-            raise ValidationError('Given discount code is already used.')
-        DiscountRedeem.objects.create(redeemed_by=request.user,
-                                      code=code,
-                                      invoice=instance)
-        return Response({
-            'status': True,
-            'msg': "Discount Applied"
-        },
-                        status=status.HTTP_200_OK)
-
-    @action(methods=['POST'], detail=True)
+    @action(methods=['GET', 'POST'], detail=True)
     def staff_approved_payment(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            return Response('ok')
         if not request.user.is_staff:
             raise ValidationError(
                 'Only Staff can add staff approved payments.')
-        summary = self.get_object()
-        with transaction.atomic():
-            Payment.objects.create(created_by=request.user,
-                                   payment_type='staff_approved',
-                                   amount=Decimal(f'{request.data["amount"]}'),
-                                   invoice=summary,
-                                   remarks='Payment Through API')
-        return Response(InvoiceSerializer(summary).data,
-                        status=status.HTTP_202_ACCEPTED)
+        invoice = self.get_object()
+        serializer = StaffPaymentSerializer(data=request.data,
+                                            context={
+                                                'request': request,
+                                                'invoice': invoice
+                                            })
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(InvoiceSerializer(invoice).data,
+                            status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'], detail=True)
     def initiate_fonepay(self, request, *args, **kwargs):

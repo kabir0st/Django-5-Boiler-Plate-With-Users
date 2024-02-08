@@ -111,3 +111,31 @@ class FonePayPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = FonePayPayment
         fields = '__all__'
+
+
+class StaffPaymentSerializer(serializers.Serializer):
+    amount = serializers.IntegerField(required=True)
+
+    def validate(self, attrs):
+        print('triggered', attrs)
+        user = self.context['request'].user
+        invoice = self.context['invoice']
+
+        if not user.is_staff:
+            raise ValidationError('Unauthorized access.')
+        if invoice.is_paid:
+            raise ValidationError('Invoice has already been paid.')
+        if attrs['amount'] > invoice.bill_amount:
+            raise ValidationError('Amount is more than bill amount.')
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            payment = Payment.objects.create(
+                created_by=self.context['request'].user,
+                payment_type='staff_approved',
+                amount=validated_data['amount'],
+                invoice=self.context['invoice'],
+                remarks='Staff approved Payment')
+            payment.invoice.save()
+        return payment.invoice
