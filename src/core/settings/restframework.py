@@ -33,11 +33,11 @@ REST_FRAMEWORK["EXCEPTION_HANDLER"] = "core.middlewares.core_exception_handler"
 
 JAZZMIN_SETTINGS = {
     "site_title":
-    "Freedom Adventure",
+    "TLT",
     "site_header":
-    "Freedom Adventure",
+    "TLT",
     "site_brand":
-    "Freedom Adventure",
+    "TLT",
     "topmenu_links": [
         {
             "name": "Home",

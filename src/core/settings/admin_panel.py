@@ -1,7 +1,7 @@
 # settings.py
 UNFOLD = {
-    "SITE_TITLE": "Freedom Adventure",
-    "SITE_HEADER": 'Freedom Adventure',
+    "SITE_TITLE": "The Language Test",
+    "SITE_HEADER": 'TLT',
     "SITE_URL": "/",
     "SITE_SYMBOL": "speed",
     "SHOW_HISTORY": True,

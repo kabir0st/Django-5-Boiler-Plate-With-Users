@@ -33,7 +33,7 @@ def send_email(to, subject, message=None, html=None, obj_id=None):
     if res := send_mail(
             subject,
             message,
-            'contact@freedomadventuretreks.com',
+            'contact@temp.com',
         [to],
             html_message=html,
     ):
