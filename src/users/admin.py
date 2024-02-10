@@ -1,5 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
+from django.contrib.auth.models import Group
 
 from users.models.supports import Notification
 
@@ -13,8 +14,35 @@ class SettingsAdmin(ModelAdmin):
 
 
 @admin.register(UserBase)
-class UserBaseAdmin(ModelAdmin):
-    pass
+class UserAdmin(ModelAdmin):
+    model = UserBase
+    fieldsets = (
+        (None, {
+            'fields': ['email', 'referred_by']
+        }),
+        ('Personal Info', {
+            'fields':
+            ['family_name', 'given_name', 'phone_number', 'profile_image']
+        }),
+        ('Permissions', {
+            'fields': ('is_active', 'is_staff', 'is_agent', 'is_verified',
+                       'designation'),
+            'classes': ('collapse', )
+        }),
+        ('Login Provider Info', {
+            'fields': ('provider', 'provider_uuid'),
+            'classes': ('collapse', )
+        }),
+        ('Important dates', {
+            'fields': ('last_login', 'created_at', 'updated_at'),
+            'classes': ('collapse', )
+        }),
+    )
+    list_display = ('email', 'given_name', 'family_name', 'is_staff',
+                    'is_agent', 'is_active')
+    search_fields = ('email', 'given_name', 'family_name')
+    readonly_fields = ('created_at', 'updated_at', 'password')
+    ordering = ('email', )
 
 
 @admin.register(VerificationCode)
@@ -38,4 +66,10 @@ class GlobalNotificationAdmin(ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(ModelAdmin):
-    pass
+    model = Notification
+    autocomplete_fields = [
+        'user',
+    ]
+
+
+admin.site.unregister(Group)

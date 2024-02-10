@@ -15,8 +15,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 100214400
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100214400
 
 INSTALLED_APPS = [
-    "users",
-    "subscriptions",
     # libs
     "unfold",
     "unfold.contrib.filters",
@@ -33,6 +31,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # apps
+    "users",
+    "subscriptions",
 ]
 
 MIDDLEWARE = [
