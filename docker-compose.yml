@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   tlt:
-    container_name: tlt
+    container_name: frames-np
     build:
       context: .
       dockerfile: Dockerfile
