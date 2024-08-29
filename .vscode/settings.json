@@ -1,7 +1,7 @@
 {
 	"python.autoComplete.extraPaths": ["./src"],
 	"files.autoSave": "onFocusChange",
-	"cSpell.words": ["t_avaibili"],
+	"cSpell.words": [""],
 	"files.watcherExclude": {
 		"**/.git/objects/**": true,
 		"**/.git/subtree-cache/**": true,
